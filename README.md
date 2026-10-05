@@ -49,3 +49,5 @@ This patch is based on PR [#36484](https://codeberg.org/ziglang/zig/pulls/36484)
 - Connection pool double-release defects during connection cleanup and TLS upgrades.
 
 Feedback is welcome! If you encounter issues or have successful test cases under various proxies, CDNs, or private registries, please report them in the Issues.
+
+For an in-depth explanation of the Zig 0.17 architecture and our hotfix design, see [docs/how-zig-maker-works.md](docs/how-zig-maker-works.md).

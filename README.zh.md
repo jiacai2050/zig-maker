@@ -49,3 +49,5 @@ cp ./Client.zig "${STD_DIR}/http/Client.zig"
 - 修复连接池释放及 TLS Upgrade 过程中的连接重复释放（Double-Release）缺陷。
 
 欢迎测试试用！如果你在各种代理、CDN 或私有源环境下遇到任何问题或验证成功，欢迎在 Issue 中提供反馈。
+
+深入了解 Zig 0.17 运行器架构与热替换方案，请阅读：[docs/how-zig-maker-works.md](docs/how-zig-maker-works.md)。
