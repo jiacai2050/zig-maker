@@ -2,9 +2,9 @@
 
 [English](README.md) | [中文](README.zh.md)
 
-A hotfix tool replacing `std.http.Client` in Zig 0.17+ to fix `zig fetch` errors caused by HTTP Proxy issues.
+A hotfix tool patching `std.http.Client` in Zig 0.17.0 and 0.17.1 to fix `zig fetch` errors caused by HTTP Proxy issues.
 
-The `Client.zig` in this repository originates from official Zig Pull Request: [#36484](https://codeberg.org/ziglang/zig/pulls/36484). Feel free to test it and share your feedback!
+`Client.patch` contains the proxy changes from official Zig Pull Request [#36484](https://codeberg.org/ziglang/zig/pulls/36484). The installer applies only these changes, preserving other standard library updates. `Client.zig` is the legacy 0.17.0 reference snapshot; do not copy it into 0.17.1.
 
 > **How it works**: In Zig 0.17+, the build runner (`maker`) is JIT-compiled on the fly via `jitCmd` whenever `zig fetch` or `zig build` is executed. By directly replacing `Client.zig` in your standard library, Zig automatically detects the source change and recompiles `maker` in seconds—no need to recompile the Zig compiler itself.
 
@@ -16,7 +16,7 @@ The `Client.zig` in this repository originates from official Zig Pull Request: [
 git clone https://github.com/jiacai2050/zig-maker.git
 cd zig-maker
 
-# Auto-detect std_dir, backup original and replace
+# Auto-detect std_dir, backup original and patch (requires patch)
 ./replace.sh
 
 # Restore original if needed
@@ -25,20 +25,18 @@ cd zig-maker
 
 ---
 
-## Manual Installation
+## Upgrading from the old installer
 
-Locate the standard library path using `zig env` and overwrite directly:
+If you already copied the old `Client.zig` into Zig 0.17.1, restore its original file before applying the patch:
 
 ```bash
-# 1. Query active std_dir
-STD_DIR=$(zig env | awk -F'"' '/\.std_dir =/ {print $2}')
-
-# 2. Backup original Client.zig
-cp "${STD_DIR}/http/Client.zig" "${STD_DIR}/http/Client.zig.orig"
-
-# 3. Copy the fixed version
-cp ./Client.zig "${STD_DIR}/http/Client.zig"
+./replace.sh --restore
+./replace.sh
 ```
+
+The backup must belong to the same Zig version. If it is missing or contains the old snapshot, recover the original file from that Zig release first. The 0.17.1 HTTP APIs changed outside the proxy code, so replacing the whole file with the 0.17.0 snapshot breaks compatibility.
+
+Repeated installation is a no-op. If the patch does not match, the installer leaves the standard library unchanged.
 
 ---
 

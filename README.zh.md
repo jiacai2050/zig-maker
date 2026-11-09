@@ -2,9 +2,9 @@
 
 [English](README.md) | [中文](README.zh.md)
 
-针对 Zig 0.17+ 中 `std.http.Client` 因 HTTP Proxy 支持缺陷导致 `zig fetch` 异常退出的热替换修复工具。
+针对 Zig 0.17.0 和 0.17.1 中 `std.http.Client` 因 HTTP Proxy 支持缺陷导致 `zig fetch` 异常退出的局部补丁工具。
 
-仓库中的 `Client.zig` 源自 Zig 官方 Pull Request：[#36484](https://codeberg.org/ziglang/zig/pulls/36484)。欢迎试用并提供反馈！
+`Client.patch` 提取自 Zig 官方 Pull Request：[#36484](https://codeberg.org/ziglang/zig/pulls/36484)。脚本仅应用代理相关改动，保留标准库其它更新。仓库中的 `Client.zig` 是旧版 0.17.0 参考快照，请勿复制到 0.17.1。
 
 > **原理解析**：Zig 0.17 的构建调度器 `maker` 是在运行时通过 `jitCmd` 即时编译（JIT）的。直接替换标准库中的 `Client.zig`，下次执行 `zig fetch` 或 `zig build` 时就会自动侦测变更并秒级重编 `maker`，无需重新编译整个 Zig 编译器本体。
 
@@ -16,7 +16,7 @@
 git clone https://github.com/jiacai2050/zig-maker.git
 cd zig-maker
 
-# Auto-detect std_dir, backup original and replace
+# Auto-detect std_dir, backup original and patch (requires patch)
 ./replace.sh
 
 # Restore original if needed
@@ -25,20 +25,18 @@ cd zig-maker
 
 ---
 
-## 手动操作
+## 从旧版工具迁移
 
-通过 `zig env` 提取标准库目录后直接覆盖：
+如果已经把旧版 `Client.zig` 复制到 Zig 0.17.1，请先恢复原文件，再应用补丁：
 
 ```bash
-# 1. Query active std_dir
-STD_DIR=$(zig env | awk -F'"' '/\.std_dir =/ {print $2}')
-
-# 2. Backup original Client.zig
-cp "${STD_DIR}/http/Client.zig" "${STD_DIR}/http/Client.zig.orig"
-
-# 3. Copy fixed version
-cp ./Client.zig "${STD_DIR}/http/Client.zig"
+./replace.sh --restore
+./replace.sh
 ```
+
+备份必须来自同一 Zig 版本。若备份缺失或也是旧快照，请先从对应版本的发行包恢复原文件。0.17.1 在代理代码之外更新了 HTTP API，整文件覆盖为 0.17.0 快照会破坏兼容性。
+
+重复执行不会再次打补丁；补丁无法匹配时，脚本会退出并保留标准库原文件。
 
 ---
 

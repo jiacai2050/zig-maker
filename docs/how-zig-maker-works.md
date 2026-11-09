@@ -138,11 +138,13 @@ TARGET="${STD_DIR}/http/Client.zig"
 [zig-maker](https://github.com/jiacai2050/zig-maker) 中的替换脚本主要完成三件事：
 
 1. **版本校验**：
-   由于修复后的 `Client.zig` 依赖 0.17 引入的 `std.Io`，脚本在执行前先确认 `zig version` 为 `0.17.x`，避免污染旧版本；
+   脚本仅接受已验证的 `0.17.0` 和 `0.17.1`；
 2. **备份原文件**：
-   覆盖前将原始文件保存为 `Client.zig.orig`；
+   在临时副本上应用 `Client.patch`，全部成功后才备份原文件为 `Client.zig.orig` 并写回；重复执行会识别已应用的补丁；
 3. **支持还原**：
-   通过 `./replace.sh --restore` 可以恢复官方原版文件。
+    通过 `./replace.sh --restore` 可以恢复官方原版文件。
+
+0.17.1 更新了请求体状态管理和 HTTP reader 的 `side` 字段。脚本使用局部补丁保留这些更新，不再复制仓库中的 0.17.0 `Client.zig` 快照。已用旧工具覆盖 0.17.1 的用户须先恢复对应版本的原文件。
 
 ---
 
@@ -151,7 +153,7 @@ TARGET="${STD_DIR}/http/Client.zig"
 在项目根目录下执行替换：
 ```bash
 $ ./replace.sh
-Replaced /path/to/0.17.0/lib/std/http/Client.zig (backup at .../Client.zig.orig)
+Patched /path/to/0.17.1/lib/std/http/Client.zig (backup at .../Client.zig.orig)
 ```
 
 开启 `ZIG_VERBOSE_CMD=1` 可以观察到增量编译和调用过程：
