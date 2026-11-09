@@ -12,7 +12,7 @@ esac
 STD_DIR="$(zig env | awk -F'"' '/\.std_dir =/ {print $2}')"
 TARGET="${STD_DIR}/http/Client.zig"
 BACKUP="${TARGET}.orig"
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/Client.zig"
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/"${VERSION}"/Client.zig"
 
 if [ "${1:-}" = "--restore" ]; then
     [ -f "${BACKUP}" ] || { echo "Error: backup ${BACKUP} not found" >&2; exit 1; }
