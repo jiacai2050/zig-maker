@@ -1,44 +1,42 @@
 # zig-maker
 
+[![CI](https://github.com/jiacai2050/zig-maker/actions/workflows/ci.yml/badge.svg)](https://github.com/jiacai2050/zig-maker/actions/workflows/ci.yml)
+
 [English](README.md) | [中文](README.zh.md)
 
-针对 Zig 0.17+ 中 `std.http.Client` 因 HTTP Proxy 支持缺陷导致 `zig fetch` 异常退出的热替换修复工具。
+针对 Zig 0.17.0 和 0.17.1 中 `std.http.Client` 因 HTTP Proxy 支持缺陷导致 `zig fetch` 异常退出的局部补丁工具。
 
-仓库中的 `Client.zig` 源自 Zig 官方 Pull Request：[#36484](https://codeberg.org/ziglang/zig/pulls/36484)。欢迎试用并提供反馈！
+`Client.patch` 提取自 Zig 官方 Pull Request：[#36484](https://codeberg.org/ziglang/zig/pulls/36484)。脚本仅应用代理相关改动，保留标准库其它更新。
 
-> **原理解析**：Zig 0.17 的构建调度器 `maker` 是在运行时通过 `jitCmd` 即时编译（JIT）的。直接替换标准库中的 `Client.zig`，下次执行 `zig fetch` 或 `zig build` 时就会自动侦测变更并秒级重编 `maker`，无需重新编译整个 Zig 编译器本体。
+> **原理解析**：Zig 0.17 的构建调度器 `maker` 是在运行时通过 `jitCmd` 即时编译（JIT）的。修补标准库中的 `Client.zig` 后，下次执行 `zig fetch` 或 `zig build` 时就会自动侦测变更并秒级重编 `maker`，无需重新编译整个 Zig 编译器本体。
 
 ---
 
 ## 快速开始
 
+> [!NOTE]
+> 脚本执行依赖系统的 `patch` 命令。macOS 及主流 Linux 发行版通常已默认内置；如果未安装，可按需安装：
+> - **Ubuntu / Debian**: `sudo apt-get install patch`
+> - **Fedora / RHEL**: `sudo dnf install patch`
+> - **Arch Linux**: `sudo pacman -S patch`
+> - **Alpine Linux**: `apk add patch`
+> - **macOS**: `xcode-select --install` 或 `brew install gpatch`
+
 ```bash
 git clone https://github.com/jiacai2050/zig-maker.git
 cd zig-maker
 
-# Auto-detect std_dir, backup original and replace
+# 自动检测 std_dir，备份原文件并打补丁
 ./replace.sh
 
-# Restore original if needed
+# 运行测试验证（参考 Zig Cookbook HTTP GET 示例）
+zig run test/http_get.zig
+
+# 如需还原官方原版
 ./replace.sh --restore
 ```
 
----
-
-## 手动操作
-
-通过 `zig env` 提取标准库目录后直接覆盖：
-
-```bash
-# 1. Query active std_dir
-STD_DIR=$(zig env | awk -F'"' '/\.std_dir =/ {print $2}')
-
-# 2. Backup original Client.zig
-cp "${STD_DIR}/http/Client.zig" "${STD_DIR}/http/Client.zig.orig"
-
-# 3. Copy fixed version
-cp ./Client.zig "${STD_DIR}/http/Client.zig"
-```
+重复执行 `./replace.sh` 具有天然幂等性，已打补丁时不会重复应用。
 
 ---
 

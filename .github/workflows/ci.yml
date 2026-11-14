@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Zig ${{ matrix.zig-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        zig-version: ['0.17.0', '0.17.1']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ matrix.zig-version }}
+
+      - name: Verify Zig environment
+        run: |
+          zig version
+          zig env
+
+      - name: Apply patch with replace.sh
+        run: |
+          ./replace.sh
+
+      - name: Run HTTP GET example
+        run: |
+          zig run test/http_get.zig
+
+      - name: Test restore and re-apply
+        run: |
+          ./replace.sh --restore
+          ./replace.sh
+          ./replace.sh # verify idempotency
+
+      - name: Run HTTP GET example again
+        run: |
+          zig run test/http_get.zig

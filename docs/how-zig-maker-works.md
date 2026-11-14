@@ -135,14 +135,14 @@ TARGET="${STD_DIR}/http/Client.zig"
 ```
 
 ### 3.2 替换脚本设计
-[zig-maker](https://github.com/jiacai2050/zig-maker) 中的替换脚本主要完成三件事：
+[zig-maker](https://github.com/jiacai2050/zig-maker) 中的替换脚本非常轻量，仅关注三件事：
 
-1. **版本校验**：
-   由于修复后的 `Client.zig` 依赖 0.17 引入的 `std.Io`，脚本在执行前先确认 `zig version` 为 `0.17.x`，避免污染旧版本；
-2. **备份原文件**：
-   覆盖前将原始文件保存为 `Client.zig.orig`；
-3. **支持还原**：
-   通过 `./replace.sh --restore` 可以恢复官方原版文件。
+1. **动态解析路径**：
+   直接通过 `zig env` 获取当前运行环境的标准库路径，无需任何硬编码；
+2. **自动备份与就地打补丁**：
+   首次应用时将原始文件备份为 `Client.zig.orig`，并通过 `patch` 命令就地应用 `Client.patch`。重复执行具有幂等性，已打补丁时不会重复操作；
+3. **支持一键还原**：
+   通过 `./replace.sh --restore` 可以直接恢复官方原版文件。
 
 ---
 
@@ -151,7 +151,12 @@ TARGET="${STD_DIR}/http/Client.zig"
 在项目根目录下执行替换：
 ```bash
 $ ./replace.sh
-Replaced /path/to/0.17.0/lib/std/http/Client.zig (backup at .../Client.zig.orig)
+Patched /path/to/0.17.1/lib/std/http/Client.zig (backup at .../Client.zig.orig)
+```
+
+运行测试验证（基于 Zig Cookbook HTTP GET 示例）：
+```bash
+$ zig run test/http_get.zig
 ```
 
 开启 `ZIG_VERBOSE_CMD=1` 可以观察到增量编译和调用过程：
